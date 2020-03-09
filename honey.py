@@ -1,10 +1,14 @@
 #!/usr/bin/python3
 
 from flask import Flask, request
+import argparse
 import json, hashlib, time
 
 app = Flask(__name__)
 meth = ['GET', 'POST', 'HEAD', 'PUT', 'DELETE', 'CONNECT', 'OPTIONS', 'TRACE', 'PATCH']
+parser = argparse.ArgumentParser()
+parser.add_argument("port")
+args = parser.parse_args()
 
 @app.route('/', defaults={'path': ''},  methods = meth)
 @app.route('/<path:path>',  methods = meth)
@@ -19,6 +23,7 @@ def defaultActions(request):
   dict['request_type'] = request.method
   dict['path'] = request.full_path
   dict['ip_address'] = request.remote_addr
+  dict['port'] = args.port
   if request.method == 'POST':
     dict['body'] = request.get_data().decode('utf-8')
   dict['hash'] = hashlib.md5(json.dumps(dict).encode('utf-8')).hexdigest()
@@ -38,4 +43,4 @@ def write(logline):
     file.write("\r\n")
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=80, debug=False)
+    app.run(host='0.0.0.0', port=args.port, debug=False)
